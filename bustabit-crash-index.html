@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bustabit Crash</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#f5f7ff;font-family:Arial,sans-serif}
+header{padding:18px 16px;border-bottom:1px solid #202941;background:#0f172a}
+.logo{font-size:24px;font-weight:800}.sub{color:#8f9bb3;font-size:13px;margin-top:4px}
+main{max-width:1000px;margin:auto;padding:18px}.grid{display:grid;grid-template-columns:1fr 320px;gap:16px}
+.card{background:#111a2d;border:1px solid #222d45;border-radius:16px;padding:16px}
+.game{height:430px;display:flex;align-items:center;justify-content:center;position:relative}
+.mult{font-size:68px;font-weight:900}.status{position:absolute;top:18px;left:18px;color:#8f9bb3}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+input,button{width:100%;padding:13px;border-radius:10px;border:1px solid #2a3753;background:#0b1222;color:white;font-size:15px}
+button{cursor:pointer;font-weight:700}button.primary{background:#2563eb;border-color:#2563eb}button.cash{background:#16a34a;border-color:#16a34a}
+button:disabled{opacity:.45;cursor:not-allowed}.balance{font-size:20px;font-weight:800;margin:10px 0 16px}
+h3{margin:4px 0 12px}.history{display:flex;gap:7px;flex-wrap:wrap}.pill{padding:7px 9px;border-radius:8px;background:#1b263d;color:#cbd5e1;font-size:12px}
+.note{color:#8f9bb3;font-size:12px;line-height:1.5;margin-top:14px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.game{height:330px}.mult{font-size:52px}}
+</style></head>
+<body>
+<header><div class="logo">🚀 Bustabit Crash</div><div class="sub">Crash game demo • virtual balance only</div></header>
+<main><div class="grid"><section>
+<div class="card game"><div class="status" id="status">Waiting for next round…</div><div class="mult" id="mult">1.00x</div></div>
+<div class="card"><div class="balance">Balance: <span id="balance">1,000.00</span></div>
+<div class="controls"><input id="bet" type="number" min="1" step="1" value="25"><button id="betBtn" class="primary">Bet</button></div>
+<div style="margin-top:10px"><button id="cashBtn" class="cash" disabled>Cash Out</button></div>
+<div class="note">Demo only. No real money, deposits, withdrawals, or payments.</div></div>
+</section>
+<aside class="card"><h3>Recent crashes</h3><div class="history" id="history"></div></aside>
+</div></main>
+<script>
+let balance=1000,bet=0,inRound=false,cashed=false,current=1,crashAt=2;
+const $=id=>document.getElementById(id);
+function render(){$('balance').textContent=balance.toFixed(2);$('mult').textContent=current.toFixed(2)+'x'}
+function newCrash(){return +(1.01+Math.random()*7.99).toFixed(2)}
+function addHistory(x){const p=document.createElement('span');p.className='pill';p.textContent=x.toFixed(2)+'x';$('history').prepend(p);while($('history').children.length>12)$('history').lastChild.remove()}
+function round(){inRound=true;cashed=false;current=1;crashAt=newCrash();$('status').textContent='Round running';$('betBtn').disabled=true;$('cashBtn').disabled=bet<=0;render();
+const start=Date.now();const timer=setInterval(()=>{const t=(Date.now()-start)/1000;current=1+Math.pow(t,1.35)*0.35;
+if(current>=crashAt){current=crashAt;render();clearInterval(timer);if(bet>0&&!cashed)$('status').textContent='CRASHED';addHistory(crashAt);bet=0;$('cashBtn').disabled=true;$('betBtn').disabled=false;inRound=false;setTimeout(round,2500)}else render()},60)}
+$('betBtn').onclick=()=>{if(inRound&&bet>0)return;const amount=Number($('bet').value);if(!amount||amount<=0||amount>balance)return alert('Enter a valid bet.');balance-=amount;bet=amount;cashed=false;$('status').textContent='Bet placed';$('cashBtn').disabled=!inRound;render()}
+$('cashBtn').onclick=()=>{if(!inRound||bet<=0||cashed)return;balance+=bet*current;cashed=true;$('status').textContent='Cashed out at '+current.toFixed(2)+'x';bet=0;$('cashBtn').disabled=true;render()}
+round();
+</script></body></html>
